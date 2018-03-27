@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Weather Data</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+
+    .row.content {height: 1500px}
+
+
+    .sidenav {
+      background-color: #f1f1f1;
+      height: 100%;
+    }
+
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+    }
+
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height: auto;}
+    }
+  </style>
+</head>
+<body>
+<script>
+
+  function getDates() {
+    var dataPoints1 = [];
+    var dataPoints2 = [];
+    var dataPoints3 = [];
+    var dataPoints4 = [];
+    var chart = new CanvasJS.Chart("forecastChart", {
+    	zoomEnabled: true,
+      panEnabled: true,
+    	axisX: {
+    		title: "Dates"
+    	},
+      axisY: {
+    		title: "Temperature (in °F)",
+    		includeZero: false,
+    		suffix: " °F"
+    	},
+    	toolTip: {
+    		shared: true
+    	},
+    	legend: {
+    		cursor:"pointer",
+    		verticalAlign: "top",
+    		fontSize: 10,
+    		fontColor: "dimGrey",
+    		itemclick : toggleDataSeries
+    	},
+    	data: [{
+    		type: "spline",
+        yValueFormatString: "#0.## °F",
+    		showInLegend: true,
+    		name: "TMAX",
+    		dataPoints: dataPoints1
+    		},
+    		{
+    			type: "spline",
+          yValueFormatString: "#0.## °F",
+    			showInLegend: true,
+    			name: "TMIN" ,
+    			dataPoints: dataPoints2
+    	}]
+    });
+    var chartAPI = new CanvasJS.Chart("forecastChartAPI", {
+    	zoomEnabled: true,
+      panEnabled: true,
+    	axisX: {
+    		title: "Dates"
+    	},
+      axisY: {
+    		title: "Temperature (in °F)",
+    		includeZero: false,
+    		suffix: " °F"
+    	},
+    	toolTip: {
+    		shared: true
+    	},
+    	legend: {
+    		cursor:"pointer",
+    		verticalAlign: "top",
+    		fontSize: 10,
+    		fontColor: "dimGrey",
+    		itemclick : toggleDataSeries
+    	},
+    	data: [{
+    		type: "spline",
+        yValueFormatString: "#0.## °F",
+    		showInLegend: true,
+    		name: "TMAX",
+    		dataPoints: dataPoints3
+    		},
+    		{
+    			type: "spline",
+          yValueFormatString: "#0.## °F",
+    			showInLegend: true,
+    			name: "TMIN" ,
+    			dataPoints: dataPoints4
+    	}]
+    });
+    function toggleDataSeries(e) {
+    	if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+    		e.dataSeries.visible = false;
+    	}
+    	else {
+    		e.dataSeries.visible = true;
+    	}
+    	chart.render();
+      charAPI.render();
+    }
+    var month = document.getElementById("date").elements.item(0).value;
+    var day = document.getElementById("date").elements.item(1).value;
+    var year = document.getElementById("date").elements.item(2).value;
+    var zipcode = document.getElementById("zipcode").value;
+    var callZipFunc = false;
+    if(isNaN(month))
+    {
+      window.alert("Please select a valid month!");
+    }
+    if(isNaN(day))
+    {
+      window.alert("Please select a valid day!");
+    }
+    if(isNaN(year))
+    {
+      window.alert("Please select a valid year!");
+    }
+    if(!zipcode)
+    {
+      window.alert("Please enter a Zipcode if you want weather from your City!");
+    }
+    if(isNaN(zipcode))
+    {
+      window.alert("Please enter a valid Zipcode!");
+    }
+    if(!isNaN(zipcode) && zipcode)
+    {
+      callZipFunc = true;
+	  getFromWeatherAPI();
+    }
+    if(!isNaN(month) && !isNaN(year) && !isNaN(day))
+    {
+      var dateString = year+month+day;
+      getForecast(dateString);
+    }
+
+    function getForecast(dateStr){
+	  var path = "http://" + document.domain + ":8081/forecast/" + dateStr;
+      $.get(path, function(data) {
+        try {
+          t = data;
+          jSONData  = JSON.parse(t);
+          for (var i = 0; i < jSONData.length; i++) {
+            var str = jSONData[i]["DATE"]
+            var iYear = parseInt(str.substring(0,4));
+            var iMonth = parseInt(str.substring(4,6));
+            var iDay = parseInt(str.substring(6,8));
+        		dataPoints1.push({
+        			x: new Date(iYear,iMonth - 1, iDay),
+        			y: jSONData[i]["TMAX"]
+        		});
+            dataPoints2.push({
+              x: new Date(iYear,iMonth - 1, iDay),
+        			y: jSONData[i]["TMIN"]
+        		});
+        	}
+          chart.render();
+        }
+        catch(err){
+          window.alert(data);
+        }
+    });
+    
+    }
+    function getFromWeatherAPI(){
+	  var path = "http://" + document.domain + ":8081/fromAPI/" + zipcode;
+      $.get(path, function(data) {
+        try {
+          t = data;
+          jSONData  = JSON.parse(t);
+          for (var i = 0; i < jSONData.length; i++) {
+            var str = jSONData[i]["DATE"]
+            var iYear = parseInt(str.substring(0,4));
+            var iMonth = parseInt(str.substring(4,6));
+            var iDay = parseInt(str.substring(6,8));
+        		dataPoints3.push({
+        			x: new Date(iYear,iMonth - 1, iDay),
+        			y: jSONData[i]["TMAX"]
+        		});
+            dataPoints4.push({
+              x: new Date(iYear,iMonth - 1, iDay),
+        			y: jSONData[i]["TMIN"]
+        		});
+        	}
+          chartAPI.render();
+        }
+        catch(err){
+          window.alert(data);
+        }
+    });
+    }
+  }
+</script>
+<div class="container-fluid">
+  <div class="row content">
+    <div class="col-sm-3 sidenav">
+      <h4>Search Weather Data</h4>
+      <form id="date">
+      <div class="input-group">
+        <select class="form-control" id="month">
+      	<option>Month</option>
+          <option>01</option>
+          <option>02</option>
+          <option>03</option>
+          <option>04</option>
+          <option>05</option>
+          <option>06</option>
+          <option>07</option>
+          <option>08</option>
+          <option>09</option>
+          <option>10</option>
+          <option>11</option>
+          <option>12</option>
+        </select>
+        <span class="input-group-addon">-</span>
+        <select class="form-control" id="day">
+        	<option>Day</option>
+            <option>01</option>
+            <option>02</option>
+            <option>03</option>
+            <option>04</option>
+            <option>05</option>
+            <option>06</option>
+            <option>07</option>
+            <option>08</option>
+            <option>09</option>
+            <option>10</option>
+            <option>11</option>
+            <option>12</option>
+            <option>13</option>
+            <option>14</option>
+            <option>15</option>
+            <option>16</option>
+            <option>17</option>
+            <option>18</option>
+            <option>19</option>
+            <option>20</option>
+            <option>21</option>
+            <option>22</option>
+            <option>23</option>
+            <option>24</option>
+            <option>25</option>
+            <option>26</option>
+            <option>27</option>
+            <option>28</option>
+            <option>29</option>
+            <option>30</option>
+            <option>31</option>
+          </select>
+          <span class="input-group-addon">-</span>
+          <select class="form-control" id="year">
+          	<option>Year</option>
+              <option>2013</option>
+              <option>2014</option>
+              <option>2015</option>
+              <option>2016</option>
+              <option>2017</option>
+              <option>2018</option>
+              <option>2019</option>
+              <option>2020</option>
+              <option>2021</option>
+              <option>2022</option>
+              <option>2023</option>
+              <option>2024</option>
+              <option>2025</option>
+          </select>
+        </div>
+        <div class="input-group" style="margin-top:10px;">
+          <input class="form-control" type="text" id="zipcode" placeholder="Zip Code"/>
+        </div>
+        <div class="input-group" style="margin-top:10px;">
+          <button class="btn btn-default" type="button" onclick="getDates()">
+            <span class="glyphicon glyphicon-search"></span>
+          </button>
+        </div>
+		<div class="row">
+			<div class="col-sm-12">
+				Note: Please enter the Date to View the weather forecast for custom dates
+				and if you want the weather data from Open Weather Map then enter the Zipcode.
+			</div>
+			
+		</div>
+      </form>
+      </div>
+
+    <div class="col-sm-9">
+      <div class="row" >
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="panel panel-default text-center" style="margin-top:10px;">
+            <div class="panel-body">
+              <p contenteditable="true">Weather Data from Custom API for custom Date</p>
+              <div id="forecastChart" style="height: 220px; width:100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="panel panel-default text-center" style="margin-top:10px;">
+            <div class="panel-body">
+              <p contenteditable="true">Weather Data from Open Weather Map API for Todays Date</p>
+              <div id="forecastChartAPI" style="height: 220px; width:100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="container-fluid">
+  <p>All rights reserved. RJV.Inc.</p>
+</footer>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</body>
+</html>
