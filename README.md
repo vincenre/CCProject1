@@ -14,7 +14,9 @@ I have used CanvasJS to plot the graph
 
 I have made a DockerFile and a requirements for listing out the packages needed by my webservice
 
-I have bundled the docker image in a tar file and stored it google drive
+I have bundled the docker image in a tar file and stored it in google drive
+
+https://drive.google.com/file/d/1T1V-8LyaNSe_x7mWIbOL0UYc2Qyeukkt/view?usp=sharing
 
 I have also uploaded in on the docker hub
 
